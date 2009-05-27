@@ -1,0 +1,314 @@
+" rc file for DOS VIM
+" Author:       Douglas L. Potts
+" Date:         Unknown
+" Last Edit:    11-Jul-2000 13:21
+" Modifications:
+" 20-Jul-1999 pottsdl   Moved some things from .vimrc that should be in here.
+" 04-Aug-1999 pottsdl   Attempted to re-sync with .unixrc after vim-5.4 upgrade
+" -
+
+let unix_dos_src="DOS"
+"   Where to keep the swap files
+set dir=C:\\TEMP
+
+"   Needed for backup option, and patchmode option
+set backupdir=.,C:\\TEMP,C:\\
+
+"so y:\etc\share\vim\al_funcs.vim
+" The expand done in SrcIfReadable does "funny" things to backslashes!
+SrcIfReadable $UVIM\\\\matchit.vim
+SrcIfReadable $UNIXHOME\.ccase.vim
+SrcIfReadable $UVIM\\ttalign.vim
+SrcIfReadable $UVIM\\flist.vim
+"SrcIfReadable $UVIM\\buffoptions.vim
+
+"       Switch between .c and .h versions of a file
+nmap \ch :call SwitchCH()<CR>
+"
+nnoremap ,y :edit $UNIXHOME\\_dosrc<CR>
+nn  ,bac :edit ~\.bash_common<CR>
+
+"     Default grep for word under cursor in current directory.
+"     Will be re-mapped by language specific grep param's if there are any.
+"map ,x vawy:echo "<C-R>" *.{<C-R>=grep_ext<CR>}"<CR>
+" DLP 21-Jul-1999 changed from %:h:p to %:p:h, wasn't getting correct
+" dir path if files was in the current dir
+map ,x viwy:grep <C-R>" <C-R>=expand("%:p:h")<CR>\*.<c-r>=grep_ext<CR><CR>
+
+cmap curword <C-R>=expand("<cword>")<CR>
+cmap ;; <C-R>=expand("<cword>")<CR>
+
+" Select All
+"nmap <c-a> ggVG
+
+" ===========================================================================
+fu! AskReload()
+" Used with autocmd for FileChangedShell, to reload file if user wants to.
+" ---------------------------------------------------------------------------
+  let reload_file=""
+  while (reload_file != "y" &&
+         reload_file != "n")
+    echo "File change outside of VIM detected, do you wish to reload (y/n):"
+    let reload_file = input("")
+    if reload_file == "y"
+      exe "nested e!"
+    elseif reload_file == "n"
+      echo "Not reloading!!!"
+    else
+      echo "Incorrect choice made."
+    endif
+  endwhile
+endf "AskReload
+
+" Remove ALL auto-commands.  This avoids having the
+" autocommands twice when the vimrc file is sourced again.
+autocmd!
+
+augroup c_cmds
+  " Remove all c_cmds autocommands
+  au!
+  au FileType c,cpp  set cindent
+  au FileType cpp set makeprg=nmake\ -f\ %:t:r.mak
+  au FileType cpp set makeef=c:\tmp\vim##.err
+  au FileType cpp set errorfile=c:\tmp\vim##.err
+  au FileType cpp  nmap ,tmpl  :r $UNIXHOME\templates\template.cpp
+  au FileType cpp  nmap ,ftmpl :r $UNIXHOME\templates\func_tmpl.cpp
+  au FileType c  so $UNIXHOME\\.crc
+  au FileType c exe "so ".mysyndir."/morec.vim"
+  au FileType c exe "so ".mysyndir."/c.vim"
+  au FileType c  vmap ,cmtn :call CommentifyC(1)<CR>
+  au FileType c  vmap ,cmto :call CommentifyC(0)<CR>
+  au FileType c  nmap ,tmpl  :r $UNIXHOME\templates\template.c
+  au FileType c  nmap ,ftmpl :r $UNIXHOME\templates\func_tmpl.c
+  au FileType c  let grep_ext="{c,h,hc,hm,ht,hv}"
+  au BufLeave *.c,*.h,*.h[cfmptv] let grep_ext="*"
+augroup END
+
+augroup dict_files
+  " Remove all dict_files autocommand
+  au!
+  au FileType dict  so $VIM\syntax\dict.vim
+  au FileType dict  vmap ,cmtn :call CommentifyDict(1)<CR>
+  au FileType dict  vmap ,cmto :call CommentifyDict(0)<CR>
+  au FileType dict  nmap ,tmpl :r $UNIXHOME\templates\template.kl
+augroup END
+
+augroup edd_files
+  " Remove all edd_files autocommands
+  au!
+  au BufNewFile,BufRead *.edd,*.dat             set syntax=edd
+  " Can re-use commentify, since comment formats are the same
+  au FileType edd  vmap ,cmtn :call CommentifyDict(1)<CR>
+  au FileType edd  vmap ,cmto :call CommentifyDict(0)<CR>
+  au BufNewFile,BufRead,BufEnter *.dat          vmap ,cmtn :call CommentifyDat(1)<CR>
+  au BufNewFile,BufRead,BufEnter *.dat          vmap ,cmto :call CommentifyDat(0)<CR>
+augroup END "edd_files
+
+augroup kl_files
+  " Remove all kl_files autocommand
+  au!
+  " Maps and abbrev's for KL must be re-sourced if we move from non-KL to KL buffer
+  au FileType kl  so $UNIXHOME\.karelrc
+  au FileType kl  set cinwords+=BEGIN,IF,ELSE,WHILE,REPEAT,FOR,BEGIN,VAR,CONST
+  au FileType kl  nmap ,tmpl :r $UNIXHOME\templates\template.kl
+  au FileType kl  nmap ,ftmpl :r $UNIXHOME\templates\rout_tmpl.kl
+  au FileType kl        map ]] :call BracketWrapper("]]", 0)<cr>
+  au FileType kl        map [[ :call BracketWrapper("[[", 0)<cr>
+  au FileType kl        map ][ :call BracketWrapper("][", 0)<cr>
+  au FileType kl        map [] :call BracketWrapper("[]", 0)<cr>
+  au FileType kl        vmap ]] <esc>:call BracketWrapper("]]", 1)<cr>
+  au FileType kl        vmap [[ <esc>:call BracketWrapper("[[", 1)<cr>
+  au FileType kl        vmap ][ <esc>:call BracketWrapper("][", 1)<cr>
+  au FileType kl        vmap [] <esc>:call BracketWrapper("[]", 1)<cr>
+  au FileType kl  SrcIfReadable $UVIM\my_adds\karel_reserved.vim
+  au FileType kl  set formatoptions-=o
+  au FileType kl  set comments+=:--
+  au FileType kl  set nocindent
+  au FileType kl  let grep_ext="{kl,etx,ftx,utx}"
+  "au FileType kl        let b:match_words set in matchit.vim
+  au FileType kl  set include=\^%\\s*\\(include\\\|INCLUDE\\)
+  au FileType kl  set infercase
+  au FileType kl  if has("unix")
+  au FileType kl    set dictionary=$VIM/my_adds/karel_dict.vim
+  au FileType kl  else
+  au FileType kl    set dictionary=$UVIM/my_adds/karel_dict.vim
+  au FileType kl  endif
+  au FileType kl  set efm+=%Aline\ %l:,%C(%t),%Z%m
+
+  " Unmap these on exit
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       unmap [[
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       unmap ]]
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       unmap ][
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       unmap []
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       SrcIfReadable $UVIM\my_adds\clr_krl_reserved.vim
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       nun K
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       set formatoptions+=o
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       set comments-=:--
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       let grep_ext="*"
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       let b:match_words=''
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       set cinwords-=BEGIN,IF,ELSE,WHILE,REPEAT,FOR,BEGIN,VAR,CONST
+  au BufLeave *.[Kk][LlEe],*.[Kk][Ll][Ss]       set include=\^#\\s*include
+  au BufLeave *.[Kk][le],*.[Kk][Ll][Ss]         set noinfercase
+  au BufLeave *.[Kk][le],*.[Kk][Ll][Ss]         set dictionary=
+  "au BufLeave *.[Kk][le],*.[Kk][Ll][Ss]         set efm-=%Aline\ %l:,%C(%t),%C%m
+  au BufLeave *.[Kk][le],*.[Kk][Ll][Ss]         set efm-=%Aline\ %l:,%C(%t),%Z%m
+
+  " KEEP from accidentally writing a file that has the .kl's added to
+  " the end of %includes
+  au BufWritePre *.[Kk][le],*.[Kk][Ll][Ss]      if exists("b:kl_added")
+  au BufWritePre *.[Kk][le],*.[Kk][Ll][Ss]        call DotKL(0)
+  au BufWritePre *.[Kk][le],*.[Kk][Ll][Ss]      endif
+augroup END
+
+augroup html_files
+  " Remove all html_files autocommand
+  au!
+  au FileType html  set syntax=html
+  au FileType html  set keywordprg=
+  au FileType html  vmap ,cmtn :call CommentifyHTML(1)<CR>
+  au FileType html  vmap ,cmto :call CommentifyHTML(0)<CR>
+  au FileType html    let b:match_words='\<<a,\<<\/a>\>:<table>,<\/table>:<td>,<\/td>:<tr>,<\/tr>:<title>,<\/title>:<head>,<\/head>:<body>,<\/body>:<html>,<\/html>'
+  " Single line comment out, and undo comment out maps
+  au FileType html  nmap <C-x> ^i<!-- <ESC>A --><ESC>^
+  au FileType html  nmap <C-y> :s/<!-- \([^*]*\) -->/\1<ESC>
+  au BufLeave *.htm,*.html  let b:match_words=''
+augroup END
+
+augroup rc_files
+  " Remove old rc_files autocommand
+  au!
+  au FileType vim  set keywordprg=
+  au FileType vim  vmap ,cmtn :call CommentifyVim(1)<CR>
+  au FileType vim  vmap ,cmto :call CommentifyVim(0)<CR>
+  au FileType vim  set comments+=:\"
+  au BufNewFile,BufRead,BufEnter _vimrc,.vimrc,*.vim let b:match_words='\<fun\k*,\<endf\k*:\<while\>,\<break\>,\<endw\k*:\<if\>,\<elseif\>,\<else\>,\<endif\k*:\<a'.'ug\k*,\<a'.'ug\k*\s\+END\>'
+  au BufNewFile,BufRead,BufEnter .unixrc,_doscrc     let b:match_words='\<fun\k*,\<endf\k*:\<while\>,\<break\>,\<endw\k*:\<if\>,\<elseif\>,\<else\>,\<endif\k*:\<a'.'ug\k*,\<a'.'ug\k*\s\+END\>'
+  au FileType sh         let b:match_words='\<if\>,\<else\>,\<fi\>:\<for\>,\<done\>:\<case\>,\<esac\>'
+  au BufLeave _vimrc,.vimrc,*.vim let b:match_words=''
+  au BufLeave .unixrc,_doscrc     let b:match_words=''
+  au BufLeave Bashrc,.bash*,mkv,.mkvrc          let b:match_words=''
+  au BufLeave                    .unixrc,_dosrc,.vimrc set comments-=:\"
+  au FileType sh   vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType sh   vmap ,cmto :call CommentifyProc(0)<CR>
+  au BufNewFile,BufRead,BufEnter .*rc           set tw=0
+
+  " Mutt stuff
+  " Source in e-mail address abbrev's for mail messages in MUTT
+  " Setup dictionary for mutt aliases so I can do <C-X><C-K> on a partial name
+  "au BufNewFile                  mail.txt,*mutt*   :!start c:\Cygnus\b18\randsig.bat
+  au BufNewFile                  mail.txt,*mutt*   :0r c:\_sig.txt
+  au BufNewFile                  mail.txt,*mutt*   exe "normal 1G"
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   set ft=mail
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   set dictionary=~\.mutt.aliases
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   set tw=72
+  "au BufNewFile,BufRead,BufEnter mail.txt          so $VIMRUNTIME\mswin.vim
+  au BufNewFile,BufRead,BufEnter mail.txt          map <c-a> ggVG
+  au BufNewFile,BufRead,BufEnter mail.txt          map <c-c> "*y
+  au BufNewFile,BufRead,BufEnter mail.txt          map <c-x> "*d
+  au BufNewFile,BufRead,BufEnter mail.txt          map <C-Q> <C-V>
+  au BufNewFile,BufRead,BufEnter mail.txt          map <c-v> "*p
+  au FileType   muttrc   set fo-=o
+  au BufLeave   mutt*    set fo+=o
+  au BufNewFile,BufRead mutt* SrcIfReadable $UVIM\wordlist.vim
+  au FileType   muttrc   vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType   muttrc   vmap ,cmto :call CommentifyProc(0)<CR>
+  au FileType   muttrc   nmap K :sp +/<C-R>=expand("<cword>")<CR> ~\etc\share\mutt\manual.doc<CR>
+  au BufLeave   muttrc   nunmap K
+
+  " Following sections deleted since they were unix specific:
+  " For procmail
+  " screen
+augroup END
+
+augroup Config_files
+  au!
+  au BufNewFile,BufRead          *.pkg,*.bls so $UVIM\morec.vim
+  au BufNewFile,BufRead,BufEnter *.pkg,*.bls so ~\.crc
+  au BufNewFile,BufRead,BufEnter *.as             vmap ,cmtn :call CommentifyDat(1)<CR>
+  au BufNewFile,BufRead,BufEnter *.as             vmap ,cmto :call CommentifyDat(0)<CR>
+  au BufNewFile,BufRead,BufEnter *.as             set comments+=:!
+  au BufLeave                    *.as             set comments-=:!
+augroup END "Config_files
+
+" From VIM Documentation
+augroup gzip_files
+  autocmd!
+  autocmd BufReadPre,FileReadPre	*.zip set bin
+  autocmd BufReadPost,FileReadPost	*.zip '[,']!pkunzip
+  autocmd BufReadPost,FileReadPost	*.zip set nobin
+  autocmd BufReadPost,FileReadPost	*.zip execute ":doautocmd BufReadPost " . expand("%:r")
+  autocmd BufWritePost,FileWritePost	*.zip !move <afile> <afile>:r
+  autocmd BufWritePost,FileWritePost	*.zip !pkzip <afile>:r
+ 
+  autocmd FileAppendPre			*.zip !pkunzip <afile>
+  autocmd FileAppendPre			*.zip !move <afile>:r <afile>
+  autocmd FileAppendPost		*.zip !move <afile> <afile>:r
+  autocmd FileAppendPost		*.zip !pkzip <afile>:r
+augroup END "gzip_files
+
+augroup errorfil
+  autocmd!
+  autocmd BufNewFile,BufRead errorfil   set syntax=diff
+  autocmd BufNewFile,BufRead errorfil   syn match diffChanged "\^ ERROR"
+  autocmd BufNewFile,BufRead errorfil   :%s/^Id/+Id<CR>
+  autocmd BufNewFile,BufRead errorfil   syn match diffLine "^ \<\d\+\>.*$"
+augroup END "errorfil
+
+augroup dat_files
+  autocmd!
+  au FileType dt           vmap ,cmtn :call CommentifyDat(1)<CR>
+  au FileType dt           vmap ,cmto :call CommentifyDat(0)<CR>
+  au FileType dt           set comments+=:!
+  " Auto correct entries for DispenseTool setups
+  au BufNewFile,BufRead,BufEnter group1.dt     %s/!MME>\(flange_type \d\)/\1
+  au BufNewFile,BufRead,BufEnter group1.dt     %s/\(payload\) \d*/\1 15
+  au BufNewFile,BufRead,BufEnter group1.dt     %s/\(cabinet\) \d/\1 1
+  au BufNewFile,BufRead,BufEnter group1.dt     %s/\(tb_cart\) \d/\1 2
+  au BufNewFile,BufRead,BufEnter group1.dt     %s/\(tb_jnt\) \d/\1 2
+
+  au BufLeave *.dt         set comments-=:!
+augroup END "dat_files
+
+augroup help_files
+  autocmd!
+  au BufNewFile,BufRead,BufEnter help.txt nmap ,x vawy:grep <C-R>" <C-R>=expand("%:h:p")<CR>\*.*<CR>
+augroup END
+
+augroup bat_files
+  autocmd!
+  au BufNewFile,BufRead,BufEnter *.bat          nmap <C-X> 0iREM <ESC>
+augroup END "bat_files
+
+" 04-Apr-2000 moved into myfiletype, now done by that "stuff" automagically!
+"aug todo_stuff
+"  au BufNewFile,BufRead,BufEnter * if exists("b:current_syntax")
+"  au BufNewFile,BufRead,BufEnter *   exe 'syn keyword '.b:current_syntax.'Todo contained '.todo_list
+"  au BufNewFile,BufRead,BufEnter *   exe 'syn match '.b:current_syntax.'Todo contained "!!!!*\|????*"'
+"  au BufNewFile,BufRead,BufEnter * endif
+"aug END "todo_stuff
+"
+
+aug binary_files
+  au!
+  au BufReadPre  *.bin,*.exe let &bin=1
+  au BufReadPost *.bin,*.exe if &bin | %!xxd
+  au BufReadPost *.bin,*.exe set ft=xxd | endif
+  au BufWritePre *.bin,*.exe if &bin | %!xxd -r
+  au BufWritePre *.bin,*.exe endif
+  au BufWritePost *.bin,*.exe if &bin | %!xxd
+  au BufWritePost *.bin,*.exe set nomod | endif
+aug END "binary_files
+
+let $TEMPLATES=$UNIXHOME."\\templates"
+aug templates
+  au!
+  au BufNewFile * call TemplateHandler()
+aug END "templates
+
+aug no_good_spot
+  au!
+  au BufWrite                      *              call StampFileEditTime()
+  au FileChangedShell              *              nested e!
+aug END "no_good_spot
+
+" vim:tw=0:
