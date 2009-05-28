@@ -1,0 +1,590 @@
+" rc file for Unix VIM
+" Author:       Douglas L. Potts
+" Date:         Unknown
+" Last Edit:    10-May-2001 17:00
+" Modifications:
+" 25-Mar-99 pottsdl     Changed clearcase cmap's to be cab's, since I keep
+"                       mistyping them and can't tell how many char's I've
+"                       typed.
+" 09-Jul-1999 pottsdl   Added manpg_files section, to make 'K' pull-up man
+"                       page in VIM for the word under the cursor.  Useful for
+"                       "See also:"'s.
+" 20-Jul-1999 pottsdl   Moved some things from .vimrc that should be in here.
+"                       Added sourcing of Dr. Chip's flist macros.
+" 04-Aug-1999 pottsdl   Added support for Rjcap function to automatically open
+"                       the results window after a find.
+" 04-Aug-1999 pottsdl   Attempted to re-sync with _dosrc after vim-5.4 upgrade
+" 09-Aug-1999 pottsdl   Changed default tw for C files to be 80 like just about
+"                       everything else
+" 12-Aug-1999 pottsdl   Made it so <C-]> in help files doesn't use ptag
+"                       functionality
+" 30-Sep-1999 pottsdl   Added templates augroup
+" -
+
+" *****************************************************
+" *             Settings specific to Unix             *
+" *****************************************************
+let unix_dos_src="UNIX"
+let $UNIXHOME="~"
+let default_dicts="/usr/dict/words"
+"set shell=bash
+" Same as default except current dir.
+set directory=.,~/tmp,/var/tmp,/tmp
+"   Path looks in current, shared sub for this dir, include for one level up dir
+"   tree, and in main /vob equivalents
+set path=.,./shared,../include
+if $LYNXTARGET=="ppc"
+  set path-=/usr/include
+  set path+=/usr/lynx/3.1.0/ppc/usr/include
+else
+  set path-=/usr/lynx/3.1.0/ppc/usr/include
+  set path+=/usr/include
+endif
+"
+"   TAGS set this way to build on existing, while allowing a re-:so
+"            Local tags files, can be rebuilt easier
+"
+" set tags-=/vob/application/dispense/tags tags+=/vob/application/dispense/tags
+"   tack these on LAST, that way we search more local tags files first
+set tags-=/vobs/tags,~/design/tags
+set tags+=/vobs/tags,~/design/tags
+"
+"   Needed for backup option, and patchmode option
+set backupdir=.,~/tmp,~/
+"   This isn't local to buffer, so temp files were getting .org's with them
+"   YUCK!
+"   set patchmode=.org
+"
+"   do a cmtar on the .bls file for this source (assumes it is in the current
+"   directory), filters it through my error filter to give the right output,
+"   and the goes on to the rest of the vim make process.
+"
+"   for target do:  make target-name  (ex. make install-entre)
+"set makeprg=cmtar\ \`locbls\ \%:t\`\ $*\ 2>&1\\\|err_filter\ %:t:e
+set makeprg=make
+
+" *****************************************************
+"               Unix specific "command"s              *
+" *****************************************************
+SrcIfReadable $VIM/ttalign.vim
+if filereadable(expand("$VIM/ttalign.vim"))
+  " Redo the dash '-' alignment, because it messes up lines commented with --
+  vmap \t- <esc>`<kmm`>jmngv:s/ - / @ /g`mjV`nk\t@`mjV`nk:s/ @ / - /g
+endif
+SrcIfReadable $VIM/flist.vim
+" If vim6 or greater, use the plugin
+if v:version < 600
+  SrcIfReadable $VIM/matchit.vim
+endif
+" If below Vim 6.0, not all options are local to buffer, use
+" Michael Geddes buffoptions script to do the same thing.
+" NOTE: Limitation on number of "Pushed" options.  If it is
+"       greater than a vim string length, then options are lost!!
+if v:version < 600
+  SrcIfReadable $VIM/buffoptions.vim
+endif
+" Source in common clearcase stuff
+SrcIfReadable ~/.ccase.vim
+
+"       Switch between .c and .h versions of a file
+nmap \ch :call SwitchCH()<CR>
+nnoremap ,y :edit ~/_dosrc<CR>
+"       Cool file 'browser' for vim
+nnoremap ,brw :so $VIM/browser.vim<CR>
+
+"  \fi     apply ispell to entire file
+nmap \fi   :w<CR>:!ispell % <CR>:e % <CR>
+vmap \fi y:sp ~/tmp/spellcheck<cr>O<esc>p:w<cr>:!ispell %<CR>:e %<cr>
+"          yank visually selected word, open up temp spellcheck file
+"          to do paste word in, then ispell that.
+
+"       Give regular old man page
+com! -n=1 Man exe"r!man <a>\|sed \"s/.<c-h>//g\""
+"       Give a Cleartool man page
+com! -n=1 CMan exe"r!cleartool man <a>\|sed \"s/.<c-h>//g\""
+"       Give a man page from my 'man' directory
+com! -n=1 MMan exe"r!man -M $HOME/etc/man <a>\|sed \"s/.<c-h>//g\""
+"       A bit fancier version of displaying man pages in vim
+"       that actually names the buffer with "/man" and only uses that
+"       one buffer.
+com! -n=1 Manpg exe"call ShowManPage(\"<a>\")"
+"       Find a filename from this directory down the tree
+com! -n=1 FF exe"!find . -name '<a>' -print"
+"       Bring a year calendar into a new window
+com! -n=? Cal exe"call OpenCalendar(\"<a>\")"
+
+" *****************************************************
+"               Unix specific mappings                *
+" *****************************************************
+"   Trailer alignment utility
+"   www6.informatik.uni-erlangen.de/~tsjensen/software/tal
+"vmap ,tal !tal -p 0<CR>
+vmap ,tal !tal -f<CR>
+"     Default grep for word under cursor in current directory.
+"     Will be re-mapped by language specific grep param's if there are any.
+"map ,x vawy:echo "<C-R>" *.{<C-R>=grep_ext<CR>}"<CR>
+" DLP 21-Jul-1999 changed from %:h:p to %:p:h, wasn't getting correct
+" dir path if files was in the current dir
+map ,x viwy:grep <C-R>" <C-R>=expand("%:p:h")<CR>/*.<c-r>=grep_ext<CR><CR>
+map <c-x><c-x> :.!boxes -d <c-r>=b:box_type<cr><cr>
+vmap <c-x><c-x> :!boxes -d <c-r>=b:box_type<cr><cr>
+map <c-x><c-y> :.!boxes -d <c-r>=b:box_type<cr> -r<cr>
+vmap <c-x><c-y> :!boxes -d <c-r>=b:box_type<cr> -r<cr>
+
+"       Sort whole file, starting at current column
+nmap #sr :%!sort +<c-r>=col(".")<cr><cr>
+"       Sort visually selected text, starting a column of initial mark
+vmap #sr :!sort +<c-r>=col("'<")<cr><cr>
+
+
+"     diff with predecessor into ~/tmp/diffs.tx, split window to display diff
+cab  Diffp call DiffP('<c-r>=getline('.')<cr>', 0)
+map  ,dif  :call DiffP('<c-r>=getline('.')<cr>', 0)<cr><cr>
+map  ,cdif :call DiffP('<c-r>=expand('%:p')<cr>', 0)<cr><cr>
+map  ,qdif :call DiffP('<c-r>=expand('%:p')<cr>', 1)<cr><cr>
+
+"     Used for quick editing of a captured stdout
+nn ,or :sp ~/tmp/results.txt<CR>
+cab erslt edit ~/tmp/results.txt<CR>
+cab man Manpg
+
+cmap rxvtt     :!~/etc/bin/rxvt -geometry 80x30 -display <c-r>=$DISPLAY<cr> &<CR>
+if has("gui_running")
+  " If gui version, start another window
+  map <C-W><C-]> :!gvim -geom 80x40 -t <C-R>=expand("<cword>")<CR><CR><CR>
+else
+  " If console version, start another term
+  "map <C-W><C-]> :!~/etc/bin/rxvt -sb -sl 1000 -geometry 80x30+5+545 -ls -n jupiter -fn 7x13 -fg gray -bg black -e vim -t <C-R>=expand("<cword>")<CR>&<CR><CR>
+  " I'm now using .Xdefaults properly, so I don't need to keep giving all
+  " these options
+  map <C-W><C-]> :!~/etc/bin/rxvt -e vim -t <C-R>=expand("<cword>")<CR>&<CR><CR>
+endif
+" Use new ptag functionality, for simple find tag. now use c-}
+"map <C-W>] :ptag <C-R>=expand('<cword>')<CR><CR>
+
+"     My mappings to edit my bashrc and bash_alias
+nn  ,brc :edit ~/.bashrc<CR>
+nn  ,bal :edit ~/.bash_aliases<CR>
+nn  ,bac :edit ~/.bash_common<CR>
+nmap ,sig :r ~/.sig_out<CR>
+nn  ,dp  :echo "$DISPLAY is:"$DISPLAY<CR>
+nn  ,dsa :let $DISPLAY="aristotle:0"<CR>
+nn  ,dss :let $DISPLAY="sophocles:0"<CR>
+
+fu! RelLicense()
+  if $HOSTNAME == 'pascal'
+    let num = system('clearlicense | grep -sc dp')
+    "echo "clearlicense results:".num
+    if num > 0
+      let junk = system('clearlicense -rel')
+    endif
+  endif
+endfu
+
+" ===========================================================================
+fu! AskReload()
+" Used with autocmd for FileChangedShell, to reload file if user wants to.
+" ---------------------------------------------------------------------------
+  let reload_file=""
+  while (reload_file != "y" && reload_file != "n")
+    echo "File change outside of VIM detected, do you wish to reload (y/n):"
+    let reload_file = input("")
+    if reload_file == "y"
+      "exe "nested e!"
+      exe "e!"
+    elseif reload_file == "n"
+      echo "Not reloading!!!"
+    else
+      echo "Incorrect choice made."
+    endif
+  endwhile
+endf "AskReload
+"au FileChangedShell * nested call AskReload()
+
+" =====================================================================
+" =====================================================================
+"                       A U T O   C O M M A N D S
+" =====================================================================
+" =====================================================================
+" Remove ALL auto-commands.  This avoids having the
+" autocommands twice when the vimrc file is sourced again.
+" dlp 26-Jul-1999 removed for conflict with 5.4's filetype use for syntax
+"autocmd!
+
+"-----------------------------------------------------------------------------
+" Unmap things (default them) so for specific lang's their mapping doesn't
+" overlap meanings in other buffers
+" NOTE:  Order is *IMPORTANT*, this must come before other autocommands
+"-----------------------------------------------------------------------------
+augroup c_cmds
+  " Remove all c_cmds autocommands
+  au!
+  au FileType c         set cin tw=80
+  " Maps and abbrev's for c must be resourced if we move from non-c to c buffer
+  if v:version < 600
+    " filetype plugin should handle this in Vim 6 and above
+    au FileType c,cpp     so ~/.crc
+  endif
+  "au FileType c,cpp     vmenu Function.dummy <C-L>
+  au FileType c,cpp     nn K :Manpg <c-r>=expand('<cword>')<cr><cr>
+  au FileType c         nmap ,tmpl  :r ~/templates/template.c
+  "au FileType c         nmap ,ftmpl :r ~/templates/func_tmpl.c
+  au FileType c         nmap ,ft    :r ~/templates/func_tmpl.c
+  au FileType cpp       nmap ,tmpl  :r ~/templates/template.cpp
+  "au FileType cpp       nmap ,ftmpl :r ~/templates/func_tmpl.cpp
+  au FileType cpp       nmap ,ft    :r ~/templates/func_tmpl.cpp
+  au FileType c         let grep_ext="{c,h,hc,hm,ht,hv}"
+
+  "au BufLeave *.c,*.h,*.h[cfmptv] set keywordprg=
+  au BufLeave *.c,*.h,*.h[cfmptv] set textwidth=80
+  au BufLeave *.c,*.h,*.h[cfmptv] let grep_ext="*"
+  au BufLeave *.c,*.h,*.h[cfmptv] nun K
+  " Didn't work 16-Nov-2000 dlp
+  "au BufLeave *.c,*.h,*.h[cfmptv] aunmenu Function
+  "au BufLeave *.cpp,*.cc,*.cxx,*.c++,*.C,*.H,*.hh,*.hxx,*.hpp,*.tcc,*.inl,named.conf aunmenu Function
+augroup END "c_cmds
+
+augroup pdl_files
+  " Remove all pdl_files autocommand
+  au!
+  " Set comments to add the '--' comment lead, no cindenting, and
+  " don't have the comment started by pressing 'o' on a commented line
+  if version < 600
+    " As of version 6.0, I now use a ftplugin
+    au FileType pdl         set com-=:-- com+=:-- nocin fo-=0
+    au FileType pdl         let pdlwords='BEGIN,IF,ELSE,ELSEIF,WHILE,REPEAT,
+    \FOR,BEGIN,VAR,CONST,SELECT,CASE,LOOP,WHEN,EXCEPTION'
+    au FileType pdl         exe 'set cinwords+='.pdlwords
+    " Source in abbrev's to auto cap keywords
+    au FileType pdl         so $VIM/my_adds/pdl_reserved.vim
+    au FileType pdl         map ,tmpl  :r ~/templates/template.pdl
+    "au FileType pdl         map ,ftmpl :r ~/templates/func_tmpl.pdl
+    au FileType pdl         map ,ft    :r ~/templates/func_tmpl.pdl
+    au FileType pdl       nmap ]] :call BracketWrapper("]]", 0)<cr>
+    au FileType pdl       nmap [[ :call BracketWrapper("[[", 0)<cr>
+    au FileType pdl       nmap ][ :call BracketWrapper("][", 0)<cr>
+    au FileType pdl       nmap [] :call BracketWrapper("[]", 0)<cr>
+    au FileType pdl       vmap ]] <esc>:call BracketWrapper("]]", 1)<cr>
+    au FileType pdl       vmap [[ <esc>:call BracketWrapper("[[", 1)<cr>
+    au FileType pdl       vmap ][ <esc>:call BracketWrapper("][", 1)<cr>
+    au FileType pdl       vmap [] <esc>:call BracketWrapper("[]", 1)<cr>
+    au FileType pdl       let grep_ext="pdl"
+  endif
+
+  au BufWritePost,FileWritePost *.pdl,*.PDL call RelLicense()
+  if version < 600
+    au BufLeave *.pdl,*.PDL set com-=:-- cin fo-=o
+    au BufLeave *.pdl,*.PDL let grep_ext="*"
+    " Cleanup keyword abbrev's
+    au BufLeave *.pdl,*.PDL so $VIM/my_adds/clr_pdl_reserved.vim
+    au BufLeave *.pdl,*.PDL exe 'set cinwords-='.pdlwords
+    "au BufLeave *.pdl,*.PDL unmap [[|unmap ]]|unmap ][|unmap []|unmap ,tmpl|unmap ,ftmpl
+    au BufLeave *.pdl,*.PDL unmap [[|unmap ]]|unmap ][|unmap []|unmap ,tmpl|unmap ,ft
+  endif
+augroup END "pdl_files
+
+augroup html_files
+  " Remove all html_files autocommand
+  au!
+  au FileType html    set keywordprg=
+  " Use tidy, for checking html
+  if version < 600
+    " If version 6.0 or above, html indenting is provided, to check
+    " content agains rules use the makeprg.
+    au FileType html    set equalprg=tidy\ -q\ -f\ ~/tmp/results.txt
+  endif
+  au FileType html    set makeprg=tidy\ -q\ -f\ ~/tmp/results.txt\ %
+  au FileType html    set errorformat=
+        \%Eline\ %l\ column\ %c\ -\ Error:%m,
+        \%Wline\ %l\ column\ %c\ -\ Warning:%m
+
+  " Used boxes, for easy comment filtering
+  au FileType html    let b:box_type="html"
+
+  au FileType html    so $VIM/html.vim
+  "au FileType html    so ~/.html_map
+  " Single line comment out, and undo comment out maps
+  "au FileType html    nmap <C-x> ^i<!-- <ESC>A --><ESC>^
+  "au FileType html    nmap <C-y> :s/<!-- \([^*]*\) -->/\1<ESC>
+
+  " Do cleanup
+  au BufLeave *.htm,*.html  let b:match_words=''
+  au BufLeave *.htm,*.html  let b:box_type="vim-cmt"
+  au BufLeave *.htm,*.html  set makeprg=make equalprg=
+  au BufLeave *.htm,*.html  so $VIM/unhtml.vim
+  au BufLeave *.htm,*.html  set efm=%A%f:%l:%c:%*\\d:%*\\d:,
+        \%C%*\\s%trror:%m,
+        \%+C%*[^:]%trror:%m,
+        \%C%*\\s%tarning:%m,
+        \%C%m
+augroup END "html_files
+
+augroup rc_files
+  " Remove old rc_files autocommand
+  au!
+  au FileType vim set keywordprg= com+=:\"
+  " au FileType vim vmap ,cmtn :call CommentifyVim(1)<CR>
+  " au FileType vim vmap ,cmto :call CommentifyVim(0)<CR>
+  au FileType vim let b:box_type="vim-cmt"
+  au FileType vim map ]] :call BracketWrapper("]]", 0)<cr>
+  au FileType vim map [[ :call BracketWrapper("[[", 0)<cr>
+  au FileType vim map ][ :call BracketWrapper("][", 0)<cr>
+  au FileType vim map [] :call BracketWrapper("[]", 0)<cr>
+  au FileType vim vmap ]] <esc>:call BracketWrapper("]]", 1)<cr>
+  au FileType vim vmap [[ <esc>:call BracketWrapper("[[", 1)<cr>
+  au FileType vim vmap ][ <esc>:call BracketWrapper("][", 1)<cr>
+  au FileType vim vmap [] <esc>:call BracketWrapper("[]", 1)<cr>
+  " Let matchit.vim define these...
+" I think, matchit had a couple of problems/refinements needed for the
+" match pattern, but I don't remember!
+"   au FileType vim
+"         \ '\<fu\k*,\<retu\(rn\=\)\=,\<endf\k*:' .
+"         \ '\<while\>,\<break\>,\<con\k*\>,\<endw\k*:' .
+"         \ '\<if\>,\<el\(s\=\|sei\=\|seif\)\>,\<en\(d\=\|dif\=\)\>:' .
+"         \ '\<aug\k*,\<aug\k*\s\+END\>'
+"
+"   au BufNewFile,BufRead,BufEnter [_.]\=g\=vimrc,*.vim,.*.vim  let b:match_words=
+"         \ '\<fu\k*,\<retu\(rn\=\)\=,\<endf\k*:' .
+"         \ '\<while\>,\<break\>,\<con\k*\>,\<endw\k*:' .
+"         \ '\<if\>,\<el\(s\=\|sei\=\|seif\)\>,\<en\(d\=\|dif\=\)\>:' .
+"         \ '\<aug\k*,\<aug\k*\s\+END\>'
+"
+  "au BufNewFile,BufRead,BufEnter *.vim,.*.vim   let b:match_words='\<fun\k*,\<endf\k*:\<while\>,\<break\>,\<endw\k*:\<if\>,\<elseif\>,\<else\>,\<endif\k*:\<a'.'ug\k*,\<a'.'ug\k*\s\+END\>'
+  au BufNewFile,BufRead,BufEnter .unixrc,_doscrc let b:match_words='\<fun\k*,\<endf\k*:\<while\>,\<break\>,\<endw\k*:\<if\>,\<elseif\>,\<else\>,\<endif\k*:\<a'.'ug\k*,\<a'.'ug\k*\s\+END\>'
+  au FileType sh                                vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType sh                                vmap ,cmto :call CommentifyProc(0)<CR>
+  au FileType sh  let b:box_type="shell"
+  " If we know we're in a shell script, then go ahead and pull up the shellmenu
+  "au FileType sh                                :if has("gui_running")|so $VIMRUNTIME/macros/shellmenu.vim|endif
+  au FileType sh                                :if has("gui_running")|so $VIM/shellmenu.vim|endif
+  au FileType sh,config                         let b:match_words =
+      \ '^\s*\<if\>\|;\s*\<if\>,^\s*\<elif\>\|;\s*\<elif\>,^\s*\<else\>\|;\s*\<else\>,^\s*\<fi\>\|;\s*\<fi\>:'.
+      \ '^\s*\<for\>\|;\s*\<for\>\|^\s*\<while\>\|;\s*\<while\>,^\s*\<done\>\|;\s*\<done\>:'.
+      \ '^\s*\<case\>\|;\s*\<case\>,^\s*\<esac\>\|;\s*\<esac\>'
+
+  " Remove the shell menus
+  au BufLeave Bashrc,.bash*,.*_aliases,         :if has("gui_running")|iunmenu Shell|endif
+  au BufLeave bashrc,bash.bashrc,.bash_profile*,*.bash :if has("gui_running")|iunmenu Shell|endif
+  au BufLeave .kshrc*,*.ksh :if has("gui_running")|iunmenu Shell|endif
+  au BufLeave /etc/profile,.profile*,*.sh,*.env :if has("gui_running")|iunmenu Shell|endif
+  au BufLeave .login*,.cshrc*,csh.cshrc,csh.login,csh.logout,.tcshrc*,*.csh,*.tcsh,.alias :if has("gui_running")|iunmenu Shell|endif
+
+  au BufLeave Bashrc,.bash*,mkv,.mkvrc          let b:match_words=''
+  au BufNewFile,BufRead,BufEnter .*rc           set tw=0
+
+  " Cleanup
+  au BufLeave .*rc                              set tw=80
+  au BufLeave *.vim,.*.vim                      set comments-=:\"
+  au BufLeave .unixrc,_dosrc,.vimrc             set comments-=:\"
+  " Let matchit.vim define these...
+  " au BufLeave _vimrc,.vimrc,*.vim               let b:match_words=''
+  " au BufLeave .unixrc,_doscrc                   let b:match_words=''
+  au BufLeave _vimrc,.vimrc,*.vim               unmap ]]|unmap [[|unmap []|unmap ][
+  au BufLeave .unixrc,_doscrc                   unmap ]]|unmap [[|unmap []|unmap ][
+
+  " Source in e-mail address abbrev's for mail messages in MUTT
+  " Setup dictionary for mutt aliases so I can do <C-X><C-K> on a partial name
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   set dictionary=~/.mutt.aliases
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   set tw=72
+  au BufNewFile,BufRead,BufEnter mail.txt,*mutt*   so ~/.mutt_aliases.vim
+  au BufLeave                    mail.txt,*mutt*   let &dictionary=default_dicts
+  au FileType   muttrc   set fo-=o
+  au BufLeave   mutt*    set fo+=o
+  au BufNewFile,BufRead mutt* SrcIfReadable $VIM/wordlist.vim
+  au FileType   muttrc   vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType   muttrc   vmap ,cmto :call CommentifyProc(0)<CR>
+  au FileType   muttrc   nmap K :sp +/<C-R>=expand("<cword>")<CR> ~/etc/share/mutt/manual.doc<CR>
+  au BufLeave   muttrc   nunmap K
+
+  " For procmail
+  au FileType   procmail vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType   procmail vmap ,cmto :call CommentifyProc(0)<CR>
+  au FileType   procmail vmap ,cmto :call CommentifyProc(0)<CR>
+
+  " DLP This is the closest thing I could find for syntax
+  au FileType   screen   vmap ,cmtn :call CommentifyProc(1)<CR>
+  au FileType   screen   vmap ,cmto :call CommentifyProc(0)<CR>
+augroup END "rc_files
+
+" From VIM Documentation (see :h gzip-example)
+augroup gzip_files
+  autocmd!
+  autocmd BufReadPre,FileReadPre        *.gz set bin
+  autocmd BufReadPost,FileReadPost      *.gz '[,']!gunzip
+  autocmd BufReadPost,FileReadPost      *.gz set nobin
+  autocmd BufReadPost,FileReadPost      *.gz execute ":doautocmd BufReadPost " . expand("%:r")
+  autocmd BufWritePost,FileWritePost    *.gz !mv <afile> <afile>:r
+  autocmd BufWritePost,FileWritePost    *.gz !gzip <afile>:r
+
+  autocmd FileAppendPre                 *.gz !gunzip <afile>
+  autocmd FileAppendPre                 *.gz !mv <afile>:r <afile>
+  autocmd FileAppendPost                *.gz !mv <afile> <afile>:r
+  autocmd FileAppendPost                *.gz !gzip <afile>:r
+augroup END "gzip_files
+
+augroup manpg_files
+  au!
+  " If already viewing a man page, allow for lookingup the man page
+  " of the word under the cursor
+  au BufNewFile,BufRead,BufEnter   \/manual\ page nm  K :call ShowManPageCursor()<CR>
+  au BufLeave                      \/manual\ page nun K
+augroup END "manpg_files
+
+" I may still want this processing, maybe.
+" aug errors_tx
+"   au!
+"   " Get rid of anything that isn't from the compiler
+"   au BufNewFile,BufRead errors.txt              :g/^[^"]/d
+"   " I don't care about warnings
+"   au BufNewFile,BufRead errors.txt              :g/warning:/d
+"   " Get rid of the empty lines (duh!)
+"   au BufNewFile,BufRead errors.txt              :g/^$/d
+"   " And since all files are built one level down in the dir tree, remove
+"   " the ../ so I can just jump to the file.
+"   au BufNewFile,BufRead errors.txt              :%s/"\.\.\//"
+"   au BufNewFile,BufRead errors.txt              :1
+"   au BufNewFile,BufRead errors.txt              exe "normal wfrWW##"
+" aug END "errors_tx
+
+aug my_help
+  au!
+  " I've setup <C-W>] to normally use ptag functionality, but I don't want it
+  " for the help files (opens a new window each time).
+  " So, map it to garbage (so in case we jump from helpfile to helpfile),
+  " then unmap it
+  au BufNewFile,BufRead,BufEnter */vim*/doc/*.txt,*/runtime/doc/*.txt map <C-W>] bla
+  au BufNewFile,BufRead,BufEnter */vim*/doc/*.txt,*/runtime/doc/*.txt unmap <C-W>]
+  " And set it back when we leave.
+  "au BufLeave */vim*/doc/*.txt,*/runtime/doc/*.txt map <C-W>] :ptag <C-R>=expand('<cword>')<CR><CR>
+aug END "my_help
+
+aug diff_tx
+  au!
+  "au FileType diff      map <tab> /^=\{15}$<cr>zt
+  "au FileType diff      let filename=$HOME.'/.diffrc'
+  "au FileType diff      call ReadFileTypeMap('diff',filename)
+  "au FileType diff      SO ~/.diffrc
+  "au FileType diff      so $HOME/.mydiffrc
+  au FileType diff      syn match PathFile "[$~a-zA-Z0-9\/._@-]*/[$~a-zA-Z0-9/._-]\+"
+  au FileType diff      hi PathFile ctermfg=cyan guifg=cyan
+  "au FileType diff      map <F8> <C-W>k<C-W>k?^\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*$<CR>jyypdwf,DAGz<C-V><CR><Esc>"ayydd<C-W>j<C-W>j@a<C-W>k<C-W>k?^\*\*\*\*<CR>/^--- <CR>yypdwf,DAGz<C-V><CR><Esc>"ayydd<C-W>j@a<C-W>kuuz<CR>
+
+  "au FileType diffLeave call RestoreOptions()
+  "au BufLeave diffs.tx  unmap <tab>
+  "au BufLeave diffs.tx  map <F8> :set incsearch!<CR>:set incsearch?<CR>
+aug END "diff_tx
+
+" 04-Apr-2000 moved into myfiletype, now done by that "stuff" automagically!
+" aug todo_stuff
+" Automatically set syntax TODO words from the todo_list variable
+
+if 0
+" Comment this out while I have Header.vim
+aug templates
+  au!
+  " Pull up templates for new files, based on extension.  If they exist.
+  " Pulls them from the $TEMPLATES directory
+  au BufNewFile * call TemplateHandler()
+aug END "templates
+endif
+
+aug no_good_spot
+  au!
+  " If I ever choose to use the 'backup' option, I don't need copies
+  " of these files (they are only temporary).
+  au BufNewFile,BufRead            spellcheck     set nobackup
+  au BufNewFile,BufRead            diffs.tx       set nobackup
+
+  "au BufWrite,BufWriteCmd          *              call StampFileEditTime()
+  "au BufWriteCmd ftp://*,rcp://*,scp://*          call StampFileEditTime()
+  au BufWrite                      *              call StampFileEditTime()
+
+  "  browser.vim gets error message from the swap file that is
+  "  created in the curr directory when the temp buffer is opened
+  "  So change the 'dir' option to not use current dir for swaps
+  au BufEnter */,.,..                             set dir-=.
+  au BufLeave */,.,..                             set dir+=.
+aug END "no_good_spot
+
+aug binary_files
+  au!
+  au BufReadPre   *.bin,*.o                     let &bin=1
+  au BufReadPre   diskParams.dat,t[0-9][0-9][0-9][0-9] let &bin=1
+  " au BufReadPost  *.bin,*.o                     if &bin | %!xxd
+  " au BufReadPost  *.bin,*.o                     set ft=xxd | endif
+  " au BufWritePre  *.bin,*.o                     if &bin | %!xxd -r
+  " au BufWritePre  *.bin,*.o                     endif
+  " au BufWritePost *.bin,*.o                     if &bin | %!xxd
+  " au BufWritePost *.bin,*.o                     set nomod | endif
+  au BufReadPost  *                             if &bin | %!xxd
+  au BufReadPost  *                             set ft=xxd | endif
+
+  au BufWritePre  *                             if &bin | %!xxd -r
+  au BufWritePre  *                             endif
+
+  au BufWritePost *                             if &bin | %!xxd
+  au BufWritePost *                             set nomod | endif
+  " Display ascii code for char under cursor in statusline
+  au BufEnter     *.bin,*.o set statusline=%<%f%h%m%r%=%b\ 0x%B\ \ %l,%c%V\ %P
+  au BufLeave     *.bin,*.o let &statusline=def_statusline
+aug END "binary_files
+
+aug BoxesFiles
+  au!
+  au FileType boxes     nmap ]] :call BracketWrapper("]]", 0)<cr>
+  au FileType boxes     nmap [[ :call BracketWrapper("[[", 0)<cr>
+  au FileType boxes     nmap ][ :call BracketWrapper("][", 0)<cr>
+  au FileType boxes     nmap [] :call BracketWrapper("[]", 0)<cr>
+  au FileType boxes     vmap ]] <esc>:call BracketWrapper("]]", 1)<cr>
+  au FileType boxes     vmap [[ <esc>:call BracketWrapper("[[", 1)<cr>
+  au FileType boxes     vmap ][ <esc>:call BracketWrapper("][", 1)<cr>
+  au FileType boxes     vmap [] <esc>:call BracketWrapper("[]", 1)<cr>
+  au BufLeave .boxes    unmap [[|unmap ]]|unmap ][|unmap []
+aug END "BoxesFiles
+
+aug Makefiles
+  au FileType make       let was_et=&et
+  au FileType make       let was_sta=&sta
+  au FileType make       set noet nosta
+  au FileType make       let b:box_type="shell"
+  au BufLeave [mM]akefile*,GNUmakefile,*.mk,*.mak,*.dsp let &et=was_et
+  au BufLeave [mM]akefile*,GNUmakefile,*.mk,*.mak,*.dsp let &sts=was_sta
+  au BufLeave [mM]akefile*,GNUmakefile,*.mk,*.mak,*.dsp let b:box_type="vim-cmt"
+aug END "Makefiles
+
+" Testing beta version of matchit, it's augroup name is Matchit
+" the older version uses augroup Percent
+"if 0
+  aug Matchit
+    "NOTE: not au! here, I want to add to the the augroup defined in matchit.vim
+    " au! FileType kl let b:match_words =
+    "     \ '\<if\>,\<else\>,\<endif\>:'.
+    "     \ '\<begin\>,\<end\>:'.
+    "     \ '\<for\>,\<endfor\>:'.
+    "     \ '\<select\>,\<endselect\>:'.
+    "     \ '\<condition\>,\<endcondition\>:'.
+    "     \ '\<while\>,\<endwhile\>:'.
+    "     \ '\<using\>,\<endusing\>:'.
+    "     \ '\<repeat\>,\<until\>'
+    "     \ | endif
+    au! FileType pdl if !exists("b:match_words") |
+      \ let b:match_ignorecase = 1
+      \ | let b:match_words =
+        \ '\<IF\>,\<ELSE\>,\<ELSEIF\>,\<ENDIF\>:'.
+        \ '\<BEGIN\>,\<END\>:'.
+        \ '\<CASE\>,\<WHEN\>,\<ENDCASE\>:'.
+        \ '\<LOOP\>,\<ENDLOOP\>:'.
+        \ '\<WHILE\>,\<ENDWHILE\>:'.
+        \ '\<FOR\>,\<ENDFOR\>:'.
+        \ '\<REPEAT\>,\<UNTIL\>'
+        \ | endif
+    au! FileType boxes if !exists("b:match_words") |
+      \ let b:match_ignorecase = 1
+      \ | let b:match_words =
+        \ '\<BOX\>,\<END\>:'.
+        \ '\<sample\>,\<ends\>'
+        \ | endif
+  aug END "Percent
+"endif " only if matchit.vim was sourced
+
+" vim:tw=0 nowrap:

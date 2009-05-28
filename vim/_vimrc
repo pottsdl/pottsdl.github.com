@@ -1,0 +1,1041 @@
+" .vimrc
+" Author:       Douglas L. Potts
+" Date:         Unknown
+" Last Edit:    10-May-2001 10:09
+" Modifications:
+" 08-Sep-1998 pottsdl added noequalalways setting
+"                     added stuff to shortcut :so and :e .vimrc
+" 09-Sep-1998 pottsdl added useful stuff from Sven Guckes' .vimrc
+" 05-Nov-98   pottsdl modified to consolidate most stuff with my Win32 gvim
+"                     .vimrc added sourcing of .unixrc if UNIX, and _DOSRC if
+"                     DOS
+" 19-Nov-98   pottsdl Moved language dependent mappings and abbrev's to
+"                     languange specific *rc files, sourced by autocommand.
+" 20-Jan-99   pottsdl reintroduced Y mapping to yank to end of line, instead of
+"                     the whole line.
+" 11-Jun-1999 pottsdl added ;kas which kills Aki's quoted sig, since his .sig
+"                     is not of conventional type.
+" 20-Jul-1999 pottsdl added grep_ext internal variable to use in ,x mappings
+" 05-Oct-1999 pottsdl added mappings for showing ascii code in statusline
+"
+" NOTES:
+" - This file is sourced by both Unix and Win/Dos versions of VIM, therefore
+"   this file goes to _great_ pains to make this possible.
+" - You will notice references to $VIM and $UVIM.  For Unix $UVIM doesn't
+"   exist, it is used by Win/Dos VIM to keep track of where files that reside on
+"   Unix are stored at.
+"
+" -
+"version 5.4 obsolete
+"
+" Settings
+"
+so $HOME/.exrc
+let $XTRA="[vim] "| " So when we shell out in VIM, we get a prefix for the prompt
+set backspace=2
+"set backup
+set cinwords=if,else,while,do,for,switch
+set clipboard=autoselect
+"  Set insert-mode completion to scan:
+"       current, loaded, unloaded buffers,
+"       other windows, current and included files, and tag completion
+set complete=.,b,u,i,w,t
+"set comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,n:),fb:-
+let $CVIMSYN="/home/dp/etc/share/vim"
+set noerrorbells
+" Allow windows of different size
+set noequalalways
+" New for cursor keys
+set esckeys
+set expandtab
+set formatoptions=tcroq2
+
+"if &term=="screen"
+"  fixdel
+"endif
+"map  <bs>
+" Used by ,x macros which do a grep on word under cursor in the current dir
+" in files matching the grep_ext
+let grep_ext="*"
+let box_type="vim-cmt"
+" Use this for Dr. Chip's stuff
+let mapleader="\\"
+let flist_options="-ax"
+if has("unix")
+  set grepprg=grep\ -ins
+else
+  "set grepprg=findstr\ /n
+  " Turbo GREP 5.5 Copyright (c) 1992, 2000 Inprise Corporation
+  " -i ignore case; -o Unix format; -n Show line number
+  set grepprg=grep\ -ion
+endif
+set helpheight=0
+" Use this one if all the docs are gzipped up, the autocmds in .unixrc
+" recognize a .gz file and do the work of decompressing it, etc.
+"set helpfile=$VIMRUNTIME/doc/help.txt.gz
+set helpfile=$VIMRUNTIME/doc/help.txt
+set iskeyword=@,48-57,_,192-255
+"use K command to look in VIM help
+set keywordprg=
+" Setup so that status line always shows
+set laststatus=2
+set listchars+=trail:_,eol:¶,tab:>-
+set mouse=a
+" Add HTML matches
+set matchpairs-=<:> matchpairs+=<:>
+set makeef=~/tmp/vim##.err
+if version < 600
+  " After version 5.7, use the 'runtimepath' to look for personal
+  " version of filetype.vim
+  if has("unix")
+    let mysyntaxfile = "$VIM/mysyntax.vim"
+    let myfiletypefile = "$VIM/myfiletypes.vim"
+    let mysynmenufile = "$VIM/mysynmenu.vim"
+    let mysyndir      = "$VIM/mysyntax"
+  else
+    let mysyntaxfile = "$UVIM\\mysyntax.vim"
+    let myfiletypefile = "$UVIM\\myfiletypes.vim"
+    let mysynmenufile = "$UVIM\\mysynmenu.vim"
+    let mysyndir      = "$UVIM\\mysyntax"
+  endif
+else
+  if has("diff")
+    set diffopt=filler,context:3
+    " DLP Added Mon Apr 09 09:15:51 EDT 2001 for new diff functionality
+    " see :h diff
+    " This highlights lines that were added
+    hi DiffAdd    ctermfg=Green               guifg=Green guibg=Black
+    "hi link DiffAdd Identifier
+    " This highlights lines that were deleted
+    hi DiffDelete ctermfg=Magenta             guifg=Magenta guibg=Black
+    "hi link DiffDelete Special
+    " This highlights changed lines
+    hi DiffChange ctermfg=White ctermbg=Blue  guifg=White guibg=Blue
+    " This actually highlights the parts of the line that changed
+    hi DiffText   ctermfg=White ctermbg=Red   guifg=White guibg=Red
+
+  endif
+  let vimfiles = "~/.vim"
+endif
+"filetype on |"This is already done in syntax.vim
+" Used to keep track of what level of Fkeys are being
+" used by html_map so when it's resourced correct mapping is used.
+let html_lvl=1
+set nopaste
+set ruler
+"set shell="bash"
+if $SHELL =~ "bash"
+  let is_bash = 1         " My shell is BASH
+  "let shell="export DIRSTR='[vim] '$DIRSTR".&shell
+  "set shell=/depot/local/bin/bash\ --rcfile\ /home/dp/.bashrc
+  "set shellcmdflag=-ic | " Default is -c
+endif
+set shortmess=flrxt
+"   use case insensitive unless search involves CAPS
+"   eg. /abc -> finds abc, aBc, ABC, etc.   /ABc -> finds on ABc
+set smartcase
+set smartindent
+set smarttab
+set softtabstop=8
+" Show normal ruler w/ filename RO line,col perc., and GZ flag for gz files
+"set statusline=%<%f%h%m%r%{VarExists('b:gzflag','\ [GZ]')}%h%=%l,%c%V\ %P
+"set statusline=%<%f%h%m%r%=%l,%c%V\ %P
+set statusline=%<%f%h%m%r%=%{$view}\ %{&ff}\ %l,%c%V\ %P
+let def_statusline="%<%f%h%m%r%=%{$view}\ %{&ff}\ %l,%c%V\ %P"
+"set statusline=%<%f%h%m%r%=%{$view}\ %l,%c%V\ %P
+"set statusline=%<%f%h%m%r%=%{strftime('%d-%b-%Y\ %I:%M%p')}\ %l,%c%V\ %P
+"set statusline=%<%f%h%m%r%=%{strftime(\"%c\")}\ \ \ %l,%c%V\ %P
+"let &statusline='%f%=%{strftime("%c")}'
+
+set suffixes=.bak,~,.o,.h,.info,.swp  "Low priority on filename complt
+" Rest of the tags setting is built in DOS/Unix specific files _dosrc, .unixrc
+" this is for tags in VIM scripts, etc. based on hdrtag by Dr. Chip
+" List of 'todo' keywords to include in the Todo hightlighting group for ALL
+" known syntaxes
+let todo_list=$TODO_LIST
+" Use the default boxes design
+let box_dsgn=""
+"syntax on  " try it after bg=dark
+
+"source $VIMRUNTIME/menu.vim
+set wildcharm=<c-\>
+set wildmenu
+" Setup F1 to do console menus (see :h console-menus)
+map <F1> :emenu <c-\>
+" Add a saveall Item
+amenu 10.345 &File.Save\ A&ll<tab>:wa       :wa<cr>
+
+set wildmode=full
+"new don't want to move cursor to beg. of line on H,M,L,C-F,C-B, etc.
+set nostartofline
+" Make sure bg is set to dark before turning on syntax
+set bg=dark
+syntax on
+if version >= 600
+  " currently the above syntax command turns filetype on, we
+  " need to turn on the rest
+  filetype plugin indent on
+endif
+
+" VIM User function to Source in a file if it is readable
+fu! Srcifreadable( fname )
+  let fname=expand(a:fname)
+  let txname=a:fname
+  if filereadable( fname )
+    if &verbose > 0
+      echo "Srcifreadable: sourcing ".txname."..."
+    endif
+    exe "so ".fname
+    if &verbose > 0
+      echo "Srcifreadable: finished sourcing ".txname."."
+    endif
+  else
+    if &verbose > 0
+      echo "Srcifreadable: file ".txname." is not readable!!"
+    endif
+  endif
+endf
+" Define an :ex command to call above function
+:com! -n=1 SrcIfReadable exe"call Srcifreadable(\"<a>\")"
+
+"=======================================================================
+"                            Let's for syntax files
+"=======================================================================
+"let c_comment_strings=1 " Allow strings w/in C comments
+let c_minlines = 50     " No of lines to search fwd/bwd to find end of comment
+let has_gz_patch = 1    " for muttrc syntax
+
+" File Explorer Plugin settings
+let g:explDetailedList = 1 " Show date and filesize
+let g:explDetailHelp   = 1 " Display Help
+let g:explVertical     = 1 " Split vertically
+let g:explSplitBelow   = 1 " Split horizontally below explorer window
+let g:explSplitRight   = 1 " Split vertically to right of explorer window
+let g:explWinSize      = 30 " Have the window be 30 chars
+
+if has("gui_running")
+  hi Normal guifg=gray guibg=black
+  hi Visual gui=reverse guifg=gray guibg=black
+  hi Search term=reverse ctermfg=white ctermbg=red guifg=white  guibg=Red
+  hi NonText guifg=green
+  set title
+  set icon
+
+  SrcIfReadable $VIM/schemes/colors.vim
+else
+  if $COLORTERM == "rxvt" || $COLORTERM == "gnome-terminal" || $USE_TTERM == "1"
+    if 'screen' == &term
+     "set term=xterm
+      set t_RV=
+      set ttymouse=xterm
+    endif
+    "set term=xterm-color
+    set t_Co=8
+    set t_Sf=[3%p1%dm
+    set t_Sb=[4%p1%dm
+    set t_AF=[3%p1%dm
+    set t_AB=[4%p1%dm
+
+    " I want gray on black
+    " DLP I normally use RXVT with -fg gray -bg black, so I don't need this
+    hi Normal guibg=black guifg=gray
+    if ($USE_TTERM == "1")
+      " Using Teraterm
+      hi Normal ctermfg=gray ctermbg=black
+      "Map page up and down
+      map [6~ <C-F>
+      map [3~ <C-B>
+    endif
+    " Make sure ErrorMsg is set for bg=dark
+    " cterm colors to choose from:
+    " black     darkcyan     darkred    lightcyan     lightred
+    " blue      darkgray     gray       lightgray     magenta
+    " brown     darkgreen    green      lightgreen    red
+    " cyan      darkgrey     grey       lightgrey     white
+    " darkBlue  darkmagenta  lightblue  lightmagenta  yellow
+    "
+    " DLP LineNr, NonText, Constant, Comment, Type, Special, Identifier, Statement
+    " all used to have ctermbg=black.  But since these highlights use the bg from
+    " Normal ctermbg, I now leave them blank.
+    hi ErrorMsg       term=standout                ctermfg=white ctermbg=red              guifg=Black  guibg=Orange
+    hi Search         term=reverse                 ctermfg=white ctermbg=red              guifg=white  guibg=Red
+    hi LineNr         term=underline               ctermfg=14                             guifg=Yellow
+    hi Visual         term=reverse   cterm=reverse ctermfg=gray  ctermbg=black gui=reverse guifg=Gray   guibg=Black
+    hi NonText        term=bold                    ctermfg=9                   gui=bold    guifg=Green
+    "hi Constant       term=underline ctermfg=darkgreen
+    hi Constant       term=underline               ctermfg=Magenta                        guifg=#ffa0a0
+    "hi String         term=underline               ctermfg=Blue  ctermbg=White            guifg=#ffa0a0
+    hi Comment        term=bold      cterm=bold    ctermfg=darkcyan                       guifg=#80a0ff
+    hi Type           term=underline cterm=bold    ctermfg=darkgreen               gui=bold    guifg=#60ff60
+    hi Special        term=bold                    ctermfg=LightRed                       guifg=Orange
+    hi Identifier     term=underline cterm=bold    ctermfg=Cyan                           guifg=#40ffff
+    hi Statement      term=bold                    ctermfg=Yellow                 gui=bold    guifg=#ffff60
+    "hi PreProc        term=underline               ctermfg=Lightblue                      guifg=#ff80ff
+    hi PreProc        term=underline               ctermfg=White ctermbg=Blue           guifg=#ff80ff
+    hi Ignore                                      ctermfg=Black                          guifg=bg
+    hi Error          term=reverse                 ctermfg=White ctermbg=red              guifg=White  guibg=Red
+    hi NonText        term=bold                    ctermfg=Green               gui=bold    guifg=Green
+    hi WarningMsg                                  ctermfg=Red
+    hi StatusLine     term=bold,reverse            ctermfg=gray ctermbg=black
+    hi StatusLine     cterm=reverse,bold
+    hi StatusLineNC   term=reverse   cterm=none ctermfg=black ctermbg=gray
+    hi WildMenu       term=standout  cterm=reverse ctermfg=black ctermbg=gray  guifg=Black  guibg=Yellow
+
+    if ($SCREEN != "")
+      set noicon
+      set notitle
+      " This special characters are used by Stephen Riehm's bracketing
+      " macro system.  But the Meta key doesn't work with SCREEN, so
+      " I'll get around it this way.
+      iab Y<< <M-+>|                    " the « char
+      iab Y>> <M-;>|                    " the » char
+      iab Y<> <M-+><M-;>|               " the » char
+      cab Y<< <M-+>|                    " the « char
+      cab Y>> <M-;>|                    " the » char
+      cab Y<> <M-+><M-;>|               " the » char
+      let bracket_macros="bracketing.no-meta.vim"
+    endif
+  endif
+endif
+
+" Set the colors for vim on "xterm"
+"
+" set t_Co=8     " "terminal has eight colors"
+" set t_Sb=dm    " escape sequence for background
+" set t_Sf=dm    " escape sequence for foreground
+"
+" see "man termcap" and "man terminfo" for details!
+
+"syntax on  " don't do it here, syntax.vim will reset default color values
+set textwidth=80
+set viminfo='50,\"1000,:50,/50,!
+if version >= 600
+  set nowrap
+else
+  set wrap
+endif
+set wrapmargin=0
+
+" Disable time stamp variable
+let g:dsb_stamp=0
+
+" Global var's for Ralf Schandl's doxygen.vim
+let g:fullid="Douglas L. Potts"
+let g:DoxyDatFormat="%a %b %d %T %Z %Y"
+" use default let g:DoxyVoidParamString="\\param void"
+
+" Global var's for using Johannes Zellner's Header.vim
+let g:Header_name=g:fullid
+let g:Header_email="dlpotts@spectral-sys.com"
+let g:Header_copyright=""
+let g:Header_inhibit_default_installation=1
+let g:Header_fold_markers=1
+
+"=============================================================================
+"=============================================================================
+"                               GENERAL MAPPINGS
+"=============================================================================
+"=============================================================================
+
+"     Make Y work like D and C, like I expect it to.
+map Y y$
+"        take char, go left, insert-paste it, and move back to right
+"map <C-T> xhPl
+" **** Don't Re-map this with VIM, will overwrite Window (^W) capabilities ***
+" ****************************************************************************
+"  swap this word with the next, uses buffer z
+" map  "zdWEla"zpBB
+
+"       edit previously editted file
+"map = 
+
+" edit next file in buffer list
+map <C-N> :bnext<CR>
+" edit previous file in buffer list
+map <C-P> :bprevious<CR>
+map  :set pvw?<cr>
+
+"       { Scroll two windows up and down in parallel. }
+nmap \j <C-E><C-W>W<C-E><C-W>w
+imap \j <Esc><C-E><C-W>W<C-E><C-W>wa
+nmap \k <C-Y><C-W>W<C-Y><C-W>w
+imap \k <Esc><C-Y><C-W>W<C-Y><C-W>wa
+
+"       Use to realign wrapped text with a logical indent
+"       this mapping bases that on the location of the 1st colon '('
+nmap \\p kyyp:s/[^(]/ /g:s/( \s*$/ :j
+"nmap \\c kyyp:s/[^:-]/ /g:s/: \s*$/ Vjgq
+"     Lineup
+nmap \\c kyyp:s/[^:-]/ /g:s/: \s*/: Vjgq:s/:/ 
+"       Lineup comment headers for pdl, for param descriptions where a '-' is
+"       used. Ex.:
+"      -- Inputs:      ATT_Loaded_callback - Client callback function for...
+"      --                                    when ELINT Type File is...
+nmap \\d kyyp:s/[^-]/ /g<cr>:s/- \s*$/- /<CR>Vjgq:s/\([^-]\)- /\1  /<CR>
+
+" transfer/read and write one block of text between vim sessions
+" Usage:
+" `from' session:
+"     ma
+"     move to end-of-block
+"     \xw
+"
+" `to' session:
+"     move to where I want block inserted
+"     \xr
+"
+if has("unix")
+  nmap \xr   :r $HOME/.vimxfer<CR>
+  nmap \xw   :'a,.w! $HOME/.vimxfer<CR>
+  vmap \xr   c<esc>:r $HOME/.vimxfer<CR>
+  vmap \xw   :w! $HOME/.vimxfer<CR>
+else
+  nmap \xr   :r $UNIXHOME/.vimxfer<CR>
+  nmap \xw   :'a,.w! $UNIXHOME/.vimxfer<CR>
+  vmap \xr   c<esc>:r $UNIXHOME/.vimxfer<cr>
+  vmap \xw   :w! $UNIXHOME/.vimxfer<CR>
+endif
+
+" Go to next/previous file on "error list", also used for :grep results
+" NOTE:  Second <CR> is necessary so that you don't see "Hit Return..." msg.
+"
+nmap =cn :cnext<CR><CR>
+nmap =cp :cprevious<CR><CR>
+nmap =cl :clist<CR>
+nmap =cr :crewind<CR><CR>
+
+" allow short-cutting the source, then this file re-maps it to
+" do a buffer to buffer diff.
+if has("unix")
+  "if filereadable(expand("$VIM/diffmap.vim"))
+    "map \df :so $VIM/diffmap.vim<cr>
+  if v:version < 600
+    if filereadable(expand("$VIM/diffwin.vim"))
+      map \dd :so $VIM/diffwin.vim<cr>
+    endif
+  else
+    " If we have vertical splitting...
+    if filereadable(expand("$VIM/hdiffwin.vim"))
+      map \dd :so $VIM/hdiffwin.vim<cr>
+    endif
+  endif
+else
+  if filereadable(expand("$UVIMRUNTIME/macros/diffwin.vim"))
+    map \dd :so $UVIMRUNTIME/macros/diffwin.vim<cr>
+  endif
+endif
+
+"
+"       META MACROS, all begin with meta-key '\' ; more later in file
+"
+"       INVERT CASE ON WORDS -- V is like W, v is like w.
+"                          3V is fine, but only to EOL.
+"       uses both register n and mark n.
+"map \v ywmno<ESC>P:s/./\~/g<CR>0"nDdd`n@n
+" macro above has problems when working w/ formatoptions=o
+map \v vaw~w
+"       abc -> ABC    ABC->abc
+"map \V yWmno<ESC>P:s/./\~/g<CR>0"nDdd`n@n
+" macro above has problems when working w/ formatoptions=o
+map \V vaW~W
+"       abc.xyz -> ABC.XYZ    ABC.XYZ->abc.xyz
+"
+"
+"       EXECUTION MACROS --     these two are for executing existing lines.
+"
+"map \@ <ESC>"mdd@m
+map \@ <ESC>"myy@m
+"       xqt line as a straight vi command (buffer m, use @@ to repeat)
+" map \! 0i:r!<ESC>"ndd@n
+map \! :<c-r>=getline('.')<cr>
+"       xqt line as :r! command (buffer n, use @@ to repeat)
+
+" Do a "shiftwidth" tab over on text,
+nmap \<tab> :call CommWrappr()<cr>
+imap \<tab> <Esc>mn:call CommWrappr()<CR>'nA
+
+"       For ELM mail, since we must use stdin option, allow  to quit!
+map <C-Q> :qa!
+"       Quick way of turning wrap (set) option on and off
+map \w :set wrap!<CR>:set wrap?<CR>
+"       Swap this word with the next, cursor at beginning of original word,
+"       uses buffer z
+"map \W "zdWEl"zpB
+"nmap _w "zdWEl"zpB
+nmap _w h"zdEE"zpB
+"? nmap _w "zdf_;"zp
+"       Execute current selection as a comand
+"       note: had to do nmap special because ^M kept popping up in cmd-line
+nmap #x mn0y$`n:<c-r>"<cr><cr>
+vmap #x :@*<cr>
+" Execute line as a shell cmd
+nmap #! mn0y$`n:!<c-r>"<cr><cr>
+
+"       Copy in current option value, used for quick set option=
+imap Ydflt <ESC>0W"nyiwA<C-R>=&<C-R>n<CR>
+
+" dlp 29-Jun-1999 13:12PM commented out for conflict with ttalign.vim mappings
+
+map <F2> :call ToggStamp()<CR>
+"       Toggle Window scrollbinding
+map <F3> :set scrollbind!<cr>:set scrollbind?<CR>
+"       Toggle Windows always equally sized
+map <F4> :set equalalways!<cr>:set equalalways?<CR>
+"       Toggle Case sensitivity, and show current setting on status line
+"map <F5> :set ic! scs!<CR>:set ignorecase?<CR>
+map <F5> :set ic! scs!<CR>:echo "ic=".&ic." scs=".&scs<cr>
+"       Toggle Wrap Scan searches
+map <F6> :set wrapscan!<CR>:set wrapscan?<CR>
+"       Toggle Search Highlighting
+map <F7> :set hls!<CR>:set hls?<CR>
+"       Toggle Incremental Search
+map <F8> :set incsearch!<CR>:set incsearch?<CR>
+"       Toggle Paste settings
+map <F9> :set paste!<CR>:set paste?<CR>
+imap <F9> <esc>:set paste!<cr>:set paste?<cr>
+"   <F10> - reserved because it is used by GUI for menus, and I've
+"   experienced some side effects because of this.
+"       Toggle Readonly attribute
+map <F11> :set ro!<CR>:set ro?<CR>
+
+"  MY ADDITIONS:
+map \l :set list!<CR>:set list?<CR>
+map \L :set nolist<CR>
+"       Text file "underline function"
+"nmap \u yyp:s/[^ \t]/-/g<CR>
+nmap \u yyp:s/./-/g<CR>
+"       Same as above but underlines only characters and numbers
+nmap \U yyp:s/[0-9a-zA-Z]/-/g<CR>
+"       Create seperator block from current line.  Put separating char
+"       at start of Label.  Ex  '*LEVEL 1' gives:
+"***********************************************************************
+"                                    LEVEL 1
+"***********************************************************************
+"       Limited to one type of sep. char., and one line label.
+map ,bc ^dlOp70.yyjpk:ce<cr>
+nmap ,cn :center<cr>
+
+"       Make header/label "spaced" out.
+map ,bs :s/[^ ]/\0 /g<ESC>
+"       Quick exit for jumping between files
+map Q :bd
+"       Only for visual mode, allow Q to do the formatting
+vmap Q gq
+
+map ,k :call FindFunc()<cr>
+"       Ever need to want to highlight a search pattern, without
+"       having to jump to the next match?
+map ,hh yiw:let @/="<C-R>""<CR>:set hls<cr>:set hls?<cr>
+"       Do same as ,hh but limit to only word, not just fragment
+map ,HH yiw:let @/='\<<C-R>"\>'<CR>:set hls<cr>:set hls?<cr>
+"       Paranthesize
+nn ,( "ndiwi () <Esc>2h"np
+vn ,( "ndi () <esc>2h"np
+nn ,) "ndiwi()<Esc>h"np
+vn ,) "ndi()<esc>h"np
+"       Bracketize
+nn ,[ "ndiwi[]<Esc>h"np
+vn ,[ "ndi[]<esc>h"np
+
+"       « » 'ize.  For use with Stephen Reihm's vim macros
+nn ,<> "ndiwi<M-+><M-;><Esc>"nP
+nn ,>< "ndiwa<M-+><M-;><Esc>"nP
+vn ,<> "ndi<M-+><M-;><esc>"nP
+vn ,>< "nda<M-+><M-;><esc>"nP
+
+"
+" ================================================================
+"  Abbreviations...
+" ================================================================
+iab Ypdl pottsdl
+iab int_rng 0x80000000/0/0x07FFFFFFF/
+iab Yint INTEGER
+iab real_rng -3.0E38/0/3.0E38/
+iab rwrw "RW RW RW RW"/
+iab rorw "RO FP FP RW"/
+" Use this after lang. specific comment
+iab Modhist Modification history:
+iab Yme Douglas L. Potts
+iab Yemail <dp@orion.spectral-sys.com>
+iab Yaddr 5200 Springfield Pike<cr>Suite 320<cr>Dayton, Ohio  45431-1265
+"iab Ymy <C-R>=strftime("%d-%b-%Y")<CR> pottsdl
+iab Ymy <C-R>=strftime("%d-%b-%Y")<CR> dp<tab>
+iab Ytt TRUE
+iab Yff FALSE
+iab Yeod [END OF DOCUMENT]
+iab Yeof [END OF FILE]
+"iab Ycurver V5.22|                      " Current version of software
+iab Yfunc <esc>:r ~/templates/func_tmpl.c<cr>/ANSI<esc>jA
+"iab Yrout <esc>:r ~/templates/rout_tmpl.kl<cr>:,+11 s/«\.rout_name\.»/
+" Space eliminates the need to do a <bs> after the abbrev completes
+iab Yrout <esc>:r ~/templates/func_tmpl.pdl<cr>:.,+8 s/ «\.rout_name\.»/
+
+  cab Screenrc  ~/.screenrc
+  cab Mysyn     <c-r>=mysyntaxfile<cr>
+  cab Myft      <c-r>=myfiletypefile<cr>
+  cab Muttrc    ~/.muttrc
+  cab Muttdoc   ~/tmp/muttdoc<bar>0r!col -b < ~/etc/doc/mutt/manual.txt<bar>set nomod
+  " Do a write, then go to next buffer
+  cab wbn       w\|bn
+  cab wbp       w\|bp
+
+" Clear up after my bad typing
+  cab Qa qa
+  cab W w
+  nmap s <C-W><C-S>
+
+" ================================================================
+" VIM (in INSERT MODE) Abbreviations...
+" ================================================================
+"       Date/Time stamp
+"       Form: 16-Dec-1998
+iab Ydate <C-R>=strftime("%d-%b-%Y")<CR>
+"       Example: Tue Dec 16 12:07:00 CET 1997
+iab YDate <C-R>=strftime("%a %b %d %T %Z %Y")<CR>
+"       Example: 14:28PM
+iab Ytime <C-R>=strftime("%I:%M%p")<CR>
+"       Example: 971027 12:00:00
+iab YDT   <C-R>=strftime("%y%m%d %T")<CR>
+"       My standard mod-hist line, assumes comment start has already been done
+iab Yimod <C-R>=strftime("%d-%b-%y")<CR>   pottsdl
+"       Ydata  : A 12 digit ruler for KAREL Var's alignment
+iab Ydata 123456789012
+"       Ybdigit : The ten digits.
+iab Ybdigit 9876543210
+"       Ydigit : The ten digits.
+iab Ydigit 1234567890
+"       Yruler : A ruler.
+iab Yruler 1234567890123456789012345678901234567890123456789012345678901234567890123456789
+"       Yline  : line of dashes (78 chars long)
+iab Yline  ------------------------------------------------------------------------------
+"       Ydline : double line (or line of equals signs 79 chars long)
+iab Ydline ==============================================================================
+"       Ystar  : line of asterisks (79 chars)
+iab Ystar  ******************************************************************************
+"       Y#     : line of pound signs (79 chars)
+iab Y#     ##############################################################################
+"       Yslash : line of forward slashes (79 chars long)
+iab Yslash //////////////////////////////////////////////////////////////////////////////
+"       Yccmt  : C comment line (75 chars long)
+iab Yccmt  <esc>0i/*************************************************************************/
+"     Ypass : Standard answer to Usenet posts
+"             with the "Subject: HELP"  (hehe)
+iab Ypass "You are in a maze of twisty little passages, all alike."
+
+"     Quote mails
+vmap ,qt :s/^/> <c-m>
+
+"     Make whitespace visible:
+"     Sws = show whitespace
+nmap ,Sws :%s/ /_/g<C-M>
+vmap ,Sws :s/ /_/g<C-M>
+"      ,cel = "clear empty lines"
+"       - delete contents of all lines which contain only whitespace.
+" map ,cel :g/^[<C-I> ]*$/d
+map ,cel :%s/^\s\+$//
+"      ,del = "delete 'empty' lines"
+"       - delete all lines which contain only whitespace
+"         note:  this does *not* delete empty lines!
+map ,del :g/^\s\+$/d
+"      ,zel = "zap, actually empty, empty lines"
+map ,zel :g/^$/d<CR>
+"
+"      ,ksr = "kill space runs"
+"             substitutes runs of two or more space to a single space:
+nmap #ksr :%s/  \+/ /g
+vmap #ksr  :s/  \+/ /g
+"    ,Sl = "squeeze lines"
+"    Turn all blocks of empty lines (within current visual)
+"    into *one* empty line:
+map ,Sl :g/^$/,/./-j
+
+"     Sometimes you just want to *see* that trailing whitespace:
+"     Stws = show trailing whitespace
+"nmap ,Stws :%s/  *$/_/g<C-M>
+"vmap ,Stws :s/  *$/_/g<C-M>
+if has("unix")
+  if filereadable(expand("$VIM/mysyntax/space.vim"))
+    nmap ,Stws :so $VIM/mysyntax/space.vim
+  endif
+else
+  if filereadable(expand("$UVIM/mysyntax/space.vim"))
+    nmap ,Stws :so $UVIM/mysyntax/space.vim
+  endif
+endif
+nmap ,dtws mz:%s/\s\+$//g<cr>`z
+vmap ,dtws mz:s/\s\+$//g<C-M>`z
+
+nmap ,pad mzggVG:call PadR(0)<cr>`z
+vmap ,pad mz:call PadR(0)<cr>`z
+
+"     Allow searches based on highlighted words
+"     from documentation visual.txt *visual-search* with said limitations
+"  Duplicated in \* and \#
+"vmap g* y/<C-R>"<CR>
+"vmap g# y?<C-R>"<CR>
+
+"     Do search based on last copy/yank into unnamed buffer
+map ,& /<C-R>"
+
+" Break line here and exit from insert afterwards
+map ,, i<CR><ESC>
+
+" 980527 I often reformat a paragraph to fit some textwidth -
+" and I use the following mapping to adjust it to the
+" current position of the cursor:
+map #tw :set textwidth=<C-R>=col(".")<C-M>
+
+"       DLP 06-Oct-2000 moved into .unixrc/_dosrc respective files
+"       Sort whole file, starting at current column
+
+"       Show current value of "setting" under the cursor
+map #st :set <C-R>=expand("<cword>")<cr>?<cr>
+"       Append current value of "setting" under the cursor at the end of this
+"       line
+map #? yiwA <c-r>=&<c-r>"<cr><cr><esc>
+
+" Disable the suspend for ^Z.
+" I use Vim under "screen" where a suspend would lose the
+" connection to the " terminal - which is what I want to avoid.
+map <C-Z> :shell
+
+" Make CTRL-^ rebound to the *column* in the previous file
+noremap <C-^> <C-^>`"
+
+" Help out with iw and aw movements (since I don't remember well)
+nnoremap yiw yiw:echo "<c-r>""<cr>
+nnoremap yiW yiW:echo "<c-r>""<cr>
+nnoremap yaw yaw:echo "<c-r>""<cr>
+nnoremap yaW yaW:echo "<c-r>""<cr>
+nnoremap yas yas:echo "<c-r>""<cr>
+nnoremap yaS yaS:echo "<c-r>""<cr>
+nnoremap yis yis:echo "<c-r>""<cr>
+nnoremap yiS yiS:echo "<c-r>""<cr>
+
+" Make "gf" rebound to last cursor position (line *and* column)
+"noremap gf gf `"
+
+" The command {number}CTRL-G show the current nuffer number, too.
+" This is yet another feature that vi does not have.
+" As I always want to see the buffer number I map it to CTRL-G.
+" Pleae note that here we need to prevent a loop in the mapping by
+" using the comamnd "noremap"!
+noremap <C-G> 2<C-G>
+
+"      ,j = join line in commented text
+"           (can be used anywhere on the line)
+" nmap ,j Jxx
+nmap ,j Vjgq
+
+"       Call the 'boxes' wrapper function which uses g:box_dsgn to
+"       make the shell filter call
+"       Add it
+map ,qc :call BoxesWrapper(0)<cr>
+"       Delete it
+map ,Qc :call BoxesWrapper(1)<cr>
+if has("unix")
+  "     ,m+x  = change all permissions to make current file an executable
+  nmap ,m+x :!chmod a+x %<cr>
+  "     ,m+x  = change all permissions to make current file NOT executable
+  nmap ,m-x :!chmod a-x %<cr>
+endif
+"     ,mlu = make letter urgent  (by giving the "Priority: urgent")
+map ,mlu 1G}OPriority: urgent<ESC>
+"     ,re : Condense multiple "Re:_" to just one "Re:":
+map ,re 1G/^Sub<CR>:s/\(Re: \)\+/Re: /<CR>
+"     ,Re : Change "Re: Re[n]" to "Re[n+1]" in Subject lines:
+map ,Re 1G/^Subject: <C-M>:s/Re: Re\[\([0-9]\+\)\]/Re[\1]/<C-M><C-A>
+
+"     ,kqs = kill quoted sig (to remove those damn sigs for replies)
+"          goto end-of-buffer, search-backwards for a quoted sigdashes
+"          line, ie "^> -- $", and delete unto end-of-paragraph:
+"map ;kqs G?^> -- $<CR>d}
+" DLP My expanded version which isn't limited to ONLY the "single quoted" sig
+map #kqs G?^\(> \)\{1,}-- $<CR>d}
+
+"   Check the highlight group for the character under the cursor:
+"   Thanks: "Dr. Charles E. Campbell Jr." <cec@gryphon.gsfc.nasa.gov>
+map ,hg :echo synIDattr(synID(line("."),col("."),1),"name")<CR>
+
+map ,hi :hi <C-R>=synIDattr(synID(line("."),col("."),1),"name")<CR>
+
+"   ,hls    = toggle hlsearch
+"   Thanks: "Preben 'Peppe' Guldberg (c928400@student.dtu.dk)"
+"   Addl Thanks: Bill Hudacek
+nmap ,hls :set hls!<CR>:set hls?<CR>
+
+nmap ,nows :set nows!<CR>:set nows?<CR>
+
+"   Snip some part of followups, visual should be invoked with V
+iab Ysnip [--- snip ---]
+vmap ,snip c[--- snip ---]<ESC>
+
+"   nmap ,tg :!(cd %:p:h;ctags *.[ch])&
+" DLP ctags is supposed to be smart enough to know what are valid tags files
+if has("unix")
+  nmap ,tag :!(cd %:p:h;ctags *)&
+else
+  nmap ,tag :!start c:\bin\tags.bat %:p:h
+endif
+nmap ,tgm :call TagMenu("-s")<CR>
+
+"   Build tags on VIM files
+if has("unix")
+  "nmap ,tgv :!(cd $VIM;hdrtag -F $VIM/tagfile.lis -t &)
+  nmap ,tgv :!(cd $VIM;ctags -L $VIM/tagfile.lis --lang=vim &)
+else
+  nmap ,tgv :!call tgv.bat <c-r>=my_version<cr><cr>
+endif
+
+"   Build "hints" file for current .c file
+"   NOTE it may be necessary to change ch=x, depending on how "massive" the
+"   function declaration is.
+nmap ,hn :!flist -h %<cr>:so hints<cr>:se ch=3<cr>
+
+"   Edit another file in the same directory as the current file
+"   uses expression to extract path from current file's path
+map ,e :e <C-R>=expand("%:p:h") . "/" <CR>
+"   Change to directory where current file is
+map ,cc :cd %:p:h<cr>
+
+"   Setup to do a global file replace on the word under the cursor
+map ,gg :%s/<C-R>=expand("<cword>")<CR>/
+vmap ,gg y:%s/<C-R>"/
+
+"   Show ascii code for char under cursor in statusline
+map ,saci :set statusline=%<%f%h%m%r%=%b\ 0x%B\ \ %l,%c%V\ %P<CR>
+"   Don't show ascii code for char under cursor in statusline
+map ,naci :set statusline=%<%f%h%m%r%=%l,%c%V\ %P<CR>
+
+"   Use Alt-Up to go to Next window up, and
+"   Alt-Down to go to the Next window down
+map <M-Down> <C-W>j
+map <M-Up> <C-W>k
+"   Laziness - type movement character w/o "window escape" char.
+map <C-J> <C-W>j
+map <C-K> <C-W>k
+" nmap ,<up> <c-w><c-->
+" nmap ,<down> <c-w><c-+>
+" nmap ,<left> <c-w><
+" nmap ,<right> <c-w>>
+nmap <c-up> <c-w><c-->
+nmap <c-down> <c-w><c-+>
+nmap <c-left> <c-w><
+nmap <c-right> <c-w>>
+
+"   Make resizing on a terminal easier
+nmap <c-+> <c-w>+
+nmap <c--> <c-w>-
+
+"   COOL number incrementor macro
+"   Added \a for Console case where we don't recognize Meta key
+nor \aa yawjmxcaw<C-R>0<ESC>`x<C-A>
+nor \AA yawjmxcaw<C-R>0<ESC>`x<C-X>
+nor ,aa yawjmxcaw<C-R>0<ESC>`x<C-A>
+nor ,AA yawjmxcaw<C-R>0<ESC>`x<C-X>
+nor <M-a> yawjmxcaw<C-R>0<ESC>`x<C-A>
+nor <M-A> yawjmxcaw<C-R>0<ESC>`x<C-X>
+
+"   Jump to number under cursor
+"   OLD: (lazy way) curtosey Sven Guckes
+"   OLD:  map ## yiw:<C-R>"<CR>
+"nmap ## :exe ":" . expand("<cword>")<CR>
+"       Yank number, toggle to other window, goto that line no.
+"nmap ## yiw<C-W><C-W>:<C-R>"<CR>
+nmap #; yiw<C-W><C-W>:<C-R>"<CR><C-W><C-W>:echo '<C-R>=getline(".")<CR>'<CR><C-W><C-W>
+nmap ## yiw<C-W><C-W>:<C-R>"<CR>
+nmap #* yiw<C-W><C-W>/<C-R>"<CR>
+
+"   In command mode, pull in word under cursor
+cmap ;cur <C-R>=expand("<cword>")<CR>
+cmap ;cfil <c-r>=expand("<cfile>")<cr>
+cmap ;cdir <c-r>=expand("%:p:h")<cr>
+
+"   Find word highlighted in visual mode
+vmap \* y/<C-R>"<CR>
+vmap \# y?<C-R>"<CR>
+
+"  Mappings for insert-mode completion
+" complete using tags
+inoremap <C-]> <C-X><C-]>
+" complete filenames
+inoremap <C-F> <C-X><C-F>
+" complete from current AND included files
+" This supercedes the default indent delete capability in insert mode
+" inoremap <C-D> <C-X><C-D>
+" complete entire line from current file
+inoremap <C-L> <C-X><C-L>
+inoremap <C-K> <C-X><C-K>
+
+if filereadable(expand("$VIM/engspchk.vim"))
+  map \spc :so $VIM/engspchk.vim
+endif
+
+" Some table making macros, format title|title2
+"                                  -----+------
+"map \tbl :s/-/ /g<ESC>:s/+/\|/g<CR>
+"map o yyp
+
+"
+"=============================================================================
+"=============================================================================
+"                           END OF GENERAL MAPPINGS
+"=============================================================================
+"=============================================================================
+
+" Great stuff from Sven for VIM
+"
+" VIM - Editing and updating the vimrc:
+" As I often make changes to this file I use these commands
+" to start editing it and also update it:
+  if has("unix")
+        let vimrc='~/.vimrc'
+        let unixrc='~/.unixrc'
+        " DLP 14-Dec-2000
+        " Let see what's buffer specific, in vim-6.0
+        "if version < 600
+          so ~/.unixrc
+        "endif
+        let func_dir='$VIM'
+        let macr_dir='$VIM/mymacro'
+        " Source in user-defined functions (like Commentify)
+        so $VIM/al_funcs.vim
+        so $VIM/functions.vim
+
+        " If started as gvim
+        if has("gui_running")
+              SrcIfReadable $VIM/TagMenu.vim
+              let bracket_macros="bracketing.meta.vim"
+        else
+              let bracket_macros="bracketing.no-meta.vim"
+              " Map page up and page down
+              map [6~ <C-F>
+              map [5~ <C-B>
+
+              map Oa <c-up>
+              map Ob <c-down>
+              map Od <c-left>
+              map Oc <c-right>
+              " Allow ctrl-left and right in a term
+              cmap Od <c-left>
+              cmap Oc <c-right>
+              " Map Home and end
+              imap <Home> <ESC>0i
+              imap <End>  <ESC>$a
+              " CTRL-Right Arrow
+              "map  Oc W
+              imap Oc <ESC>lWi
+              " CTRL-Left Arrow
+              "map  Od B
+              imap Od <ESC>Bi
+              " Map keypad + and - to CTRL-+ and CTRL--
+              nmap Ok <c-+>
+              "nmap Om <c-->
+              nmap [38~ <c-->
+
+              " Map keypad / and * to :cp and :cn
+              nmap Oo :cp<cr>
+              nmap Oj :cn<cr>
+              nmap Ox :cl<cr>
+
+              " Setup console menus
+              source $VIMRUNTIME/menu.vim
+              set wildcharm=<c-\>
+              set wildmenu
+              " Setup F1 to do console menus (see :h console-menus)
+              map <F1> :emenu <c-\>
+        endif " if has("gui_running")
+  else " ie:  if has("dos16") || has("dos32") || has("win32")
+        let vimrc='c:\_vimrc'
+        let unixrc=$UNIXHOME.'\.unixrc'
+        so $UNIXHOME/_dosrc
+        let func_dir='$UVIM'
+        let macr_dir='$UVIM/mymacro'
+        " Source in user-defined functions (like Commentify)
+        so $UVIM/al_funcs.vim
+        so $UVIM/functions.vim
+
+        " For Windows Platform, we don't worry about whether or not
+        " the gui is running for these macros since Alt-key works correctly.
+        let bracket_macros="bracketing.meta.vim"
+
+        " If started as gvim
+        if has("gui_running")
+              set guioptions=agmrt
+        else
+              " Map page up and page down
+              map [6z <C-F>
+              map [5z <C-B>
+              " Map Home and end
+              imap <Home> <ESC>0i
+              imap <End>  <ESC>$a
+
+              " Setup console menus
+              source $VIMRUNTIME/menu.vim
+              set wildcharm=<c-\>
+              set wildmenu
+              " Setup F1 to do console menus (see :h console-menus)
+              map <F1> :emenu <c-\>
+        endif " If has("gui_running")
+  endif " if has("unix")
+
+"   Shut off autoindenting for mouse button pasting
+if has("gui_running")
+  " This presents a real problem when going from console to GUI, because
+  " I don't need these mappings, but I can't do a:
+  " - remap to nothing, unmap (which alleviates the error msg, saying no
+  "   mapping found)
+  " So I create a vim variable to let me know whether or not they are mapped,
+  " and only unmap them if they have been mapped.
+  if exists("midmouse_map")
+    unmap <MiddleMouse>
+    iunmap <MiddleMouse>
+    unlet g:midmouse_map
+  endif
+else
+  let g:midmouse_map = 1
+  no <MiddleMouse> :se paste<CR>"*P:se nopaste<CR>
+  ino <MiddleMouse> <ESC>:se paste<CR>"*P:se nopaste<CR>i
+endif
+
+"   Re-source .vimrc, etc. when going into gui-mode
+"   some settings are based on wheter gui is running or not.
+"   Put this here because vimrc variable has been set by now.
+"cab Ygui gui +cmd "source <C-R>=vimrc<CR>"
+au GUIEnter * exe "so ".vimrc
+"cab gui gui +cmd "source <C-R>=vimrc<CR>"
+"cmap gui gui +cmd "source <C-R>=vimrc<CR>"
+
+nnoremap ,u :source <C-R>=vimrc<CR><CR>
+nnoremap ,v :edit <C-R>=vimrc<CR><CR>
+nnoremap ,w :edit <C-R>=unixrc<CR><CR>
+if has("unix")
+  nnoremap ,my :edit  $VIM/mysyntax/
+else
+  nnoremap ,my :edit  $UVIM/mysyntax/
+endif
+nnoremap ,syn :so $VIMRUNTIME/syntax/
+nn       ,al :e <C-R>=func_dir<cr>/al_funcs.vim<CR>
+nn       ,fn :e <C-R>=func_dir<cr>/functions.vim<CR>
+"   Source in Ron Aaron's grep.vim (which requires utils.vim)
+"   for usage of his Lid functions which use the idutils database
+nn       #gp :so $VIM/global/utils.vim\|so $VIM/global/grep.vim
+"nn       ,smart :e <C-R>=func_dir<cr>/smartCTRL_w.vim<CR>
+nn       ,mac :e <c-r>=macr_dir<cr>/<c-r>=bracket_macros<cr><cr>
+nn       #mac :so <c-r>=macr_dir<cr>/<c-r>=bracket_macros<cr><cr>
+
+"  Open syntax file for current file's syntax
+if version > 507
+  nn       ,os :exe "sp ~/.vim/syntax/".&ft.".vim"<cr>
+else
+  nn       ,os :exe "sp ".mysyndir."/".&ft.".vim"<cr>
+endif
+
+"  Safeguard for re-sourcing this file
+if &secure == 0
+  set secure
+endif
+
+" vim:tw=0:et:sw=2:ts=2
+
+

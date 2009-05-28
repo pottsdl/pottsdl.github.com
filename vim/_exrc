@@ -1,0 +1,48 @@
+" .exrc
+" Author:       Douglas L. Potts
+" Date:         05-Oct-2000
+" Last Edit:    05-Oct-2000 10:17
+" Modifications:
+" 05-Oct-2000 dp         separated some 'vi' mappings from my .vimrc to here,
+"                        for use in the visual slickedit 'vi' interface.
+" -
+set autoindent
+set ignorecase
+set shiftwidth=2
+set showmode
+set showmatch
+set tags=./tags,tags,$VIM/tags
+set tabstop=8
+"
+"
+"       EXCHANGE MACROS -- for exchanging things
+"
+"       exchange last typed char with penultimate one in insert mode
+map  xp
+map  :next
+map  :rew
+map \xr   :r $HOME/.vimxfer
+map \xw   :'a,.w! $HOME/.vimxfer
+"       go to next file in arg list, same position 
+"       useful for "vi +/string file1 file2 file3"
+map \N :n +/
+"
+"       META MACROS, all begin with meta-key '\' ; more later in file
+"
+"       INVERT CASE ON WORDS -- V is like W, v is like w.
+"                          3V is fine, but only to EOL.
+"       uses both register n and mark n.
+map \v ywmnoP:s/./\~/g0"nDdd`n@n
+map \V yWmnoP:s/./\~/g0"nDdd`n@n
+"
+"       EXECUTION MACROS --     these two are for executing existing lines.  
+"
+map \@ <ESC>"mdd@m
+"       xqt line as a straight vi command (buffer m, use @@ to repeat)
+map \! 0i:r!<ESC>"ndd@n
+"       Swap this word with the next, cursor at beginning of original word,
+"       uses buffer z
+"map \w "zdWE"zpB
+"  MY ADDITIONS:
+map \l :set list
+map \L :set nolist

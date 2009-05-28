@@ -1,0 +1,4 @@
+io_set_sim           function    124  slisaiom.c     void io_set_sim(SA_IO_T *iomp_p, LONG port_is_simmed)
+setup_io_point_for_editing function    198  slisaiom.c     void setup_io_point_for_editing (SA_IO_T *iomp_p, USHORT *num_ios_p,
+slisaiom             function    245  slisaiom.c     ERROR slisaiom (ULONG *var_num_p, /* number of parameters */
+update_sim_status    function    162  slisaiom.c     void update_sim_status (SA_IO_T *iomp_p, LONG *sim_status_p)
